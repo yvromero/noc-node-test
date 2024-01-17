@@ -1,12 +1,15 @@
-import { CheckService } from "../domain/use-cases/checks/check-service";
-import { CronService } from "./cron/cron-service";
 import { LogRepositoryImpl } from '../infraestructure/repositories/log.repository.impl';
 import { FileSystemDatasource } from "../infraestructure/datasources/file-system.datasource";
+import { EmailService } from './email/email.service';
+import { SendEmailLogs } from '../domain/use-cases/mail/send-email-logs';
+
 
 
 const fileSystemLogRepository = new LogRepositoryImpl(
     new FileSystemDatasource()
 );
+
+const emailService = new EmailService();
 
 export class Server {
 
@@ -14,20 +17,29 @@ export class Server {
 
         console.log('Server started...');
 
-        CronService.createJob(
-            '*/5 * * * * *',
-            () => {
+        // Enviar email por Use Case
 
-                const url = 'https://google.com';
+        new SendEmailLogs(
+            emailService,
+            fileSystemLogRepository
+        )
+        .execute(
+            ['luntiromer@gmail.com', 'luntiromer@gmail.com']);
+
+        // CronService.createJob(
+        //     '*/5 * * * * *',
+        //     () => {
+
+        //         const url = 'https://google.com';
                 
-                new CheckService(
-                    fileSystemLogRepository,
-                    () => console.log(`${ url } is ok`),
-                    ( error ) => console.log( error ),
-                ).execute(url)
-                // new CheckService().execute('http://localhost:3000');
-            }
-        );
+        //         new CheckService(
+        //             fileSystemLogRepository,
+        //             () => console.log(`${ url } is ok`),
+        //             ( error ) => console.log( error ),
+        //         ).execute(url)
+        //         // new CheckService().execute('http://localhost:3000');
+        //     }
+        // );
 
 
     }
